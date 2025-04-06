@@ -1,0 +1,179 @@
+ Practica 1
+
+sudo dnf install wget tar python3 perl -y
+  sudo wget https://www.webmin.com/download/webmin-current.tar.gz
+   sudo tar xvf webmin-current.tar.gz
+ sudo mkdir -p /usr/local/webmin
+  sudo ./webmin-2.303/setup.sh /usr/local/webmin/
+------------------------------------------------------------------------------------------------
+PRACTICA 2 
+
+terraform-digitalocean
+
+nano main.tf
+
+
+terraform {
+  required_providers {
+    digitalocean = {
+      source  = "digitalocean/digitalocean"
+      version = "~> 2.0"
+    }
+  }
+}
+
+provider "digitalocean" {
+  token = var.do_token
+}
+
+# Agregar la clave SSH directamente desde tu máquina
+resource "digitalocean_ssh_key" "default" {
+  name       = "joan-ansible"
+  public_key = file("~/.ssh/id_rsa.pub")  # Ruta de tu clave pública
+}
+
+# Crear la VM
+resource "digitalocean_droplet" "OS3vm" {
+  name     = "OS3vm"
+  region   = "nyc1"
+  size     = "s-1vcpu-1gb"
+  image    = "ubuntu-22-04-x64"
+  ssh_keys = [digitalocean_ssh_key.default.id]  # Usar la clave SSH cargada
+}
+
+output "ip_publica" {
+  value = digitalocean_droplet.OS3vm.ipv4_address
+}
+
+nano terraform.tfvars
+
+
+do_token     = "dop_v1_tu_token_aqui"
+ssh_key_name = "llavePublicaDeTuServerAnsible"
+
+terraform init
+terraform apply
+
+ssh-keygen -t rsa -b 4096 -C "tu_correo@ejemplo.com"
+
+--------------------------------------------------------------------------------------
+
+PRACTICA 3:
+
+sudo dnf update -y
+sudo dnf install ansible -y
+sudo dnf install python3-pip -y
+pip3 install pywinrm
+
+
+2. Configurar Cliente Ubuntu
+Crear el usuario ansible:
+
+sudo adduser ansible
+Darle permisos de sudo:
+
+sudo usermod -aG sudo ansible
+Configurar el acceso SSH sin contraseña:
+
+
+ssh-keygen -t rsa -b 2048
+ssh-copy-id ansible@<IP_VM_Ubuntu>
+
+(En caso de no servir agregarla manual)
+cat /home/ansible/.ssh/id_rsa.pub
+
+EN EL CLIENTE:
+
+sudo mkdir -p /home/ansible/.ssh
+sudo nano /home/ansible/.ssh/authorized_keys
+ pega la llave en ~/.ssh/authorized_keys
+
+3. Configurar Cliente Windows (PowerShell en Windows)
+Habilitar WinRM:
+
+powershell
+
+winrm quickconfig
+
+winrm quickconfig
+winrm set winrm/config/service '@{AllowUnencrypted="true"}'
+winrm set winrm/config/service/auth '@{Basic="true"}'
+netsh advfirewall firewall add rule name="WinRM" dir=in action=allow protocol=TCP localport=5985
+
+Crear el usuario ansible en Windows:
+
+powershell
+
+net user ansible /add
+net localgroup administradores ansible /add
+4. Configurar Inventario de Ansible en Oracle Linux
+
+sudo nano /etc/ansible/hosts
+Añadir:
+
+[linux]
+143.198.169.208 ansible_user=ansible ansible_ssh_private_key_file=~/.ssh/id_rsa
+
+[win]
+10.0.0.20 ansible_user=ansible ansible_password=TuPasswordWindows ansible_connection=winrm ansible_winrm_transport=basic ansible_winrm_port=5985 ansible_winrm_server_cert_validation=ignore
+
+5. Probar la Conexión con el Módulo ping
+Para Ubuntu:
+
+
+ansible linux -m ping
+Para Windows:
+
+
+ansible win -m win_ping
+
+
+
+sudo mkdir -p /home/ansible/.ssh
+sudo nano /home/ansible/.ssh/authorized_keys
+----------------------------------------------------------------------------------------------------
+
+PRACTICA 4:
+
+ansible win -m win_copy -a "src=/home/joancuevas/archivo.txt dest=C:/Users/ansible/Documents/"
+
+ansible linux -m reboot -b
+---------------------------------------
+
+PRACTICA 5
+
+nano install_notepad++.yml
+
+- name: Install Notepad++ on Windows
+  hosts: win
+  tasks:
+    - name: Install Notepad++ using Chocolatey
+      win_chocolatey:
+        name: notepadplusplus
+        state: present
+
+ansible-playbook install_notepad++.yml
+
+
+nano update_repositories.yml
+
+- name: Update APT repositories on Linux
+  hosts: linux
+  become: yes
+  tasks:
+    - name: Update apt repositories
+      apt:
+	update_cache: yes
+        cache_valid_time: 3600
+
+    - name: Upgrade all packages
+      apt:
+	upgrade: dist
+        autoremove: yes
+        autoclean: yes
+
+ansible-playbook update_repositories.yml
+
+sudo apt update
+cat /var/log/apt/history.log
+
