@@ -8,7 +8,11 @@ sudo dnf install wget tar python3 perl -y
 ------------------------------------------------------------------------------------------------
 PRACTICA 2 
 
-terraform-digitalocean
+sudo yum install -y yum-utils
+sudo yum-config-manager --add-repo https://rpm.releases.hashicorp.com/RHEL/hashicorp.repo
+sudo yum -y install terraform
+
+mkdir terraform-digitalocean
 
 nano main.tf
 
@@ -55,6 +59,7 @@ terraform init
 terraform apply
 
 ssh-keygen -t rsa -b 4096 -C "tu_correo@ejemplo.com"
+
 
 --------------------------------------------------------------------------------------
 
